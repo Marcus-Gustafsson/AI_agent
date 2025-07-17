@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# .env (Don't want to commit API keys, passwords, or other sensitive information to git.)
+.env
