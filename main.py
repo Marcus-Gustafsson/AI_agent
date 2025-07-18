@@ -2,6 +2,10 @@ import os, sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from rich import print # What it does: Beautiful text formatting, syntax highlighting, tables, progress bars, markdown, etc.
+from prompt_toolkit import prompt # Builds interactive input prompts (autocomplete, history, validation).
+
+
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -33,7 +37,7 @@ def main():
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
     
-    print(response.text) # Prints LLM:s response
+    print(f"[bold green]LLM Response:[/bold green] {response.text}")
 
 
 
