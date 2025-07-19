@@ -1,5 +1,5 @@
 import os
-from functions.config import MAX_FILE_CHAR_LENGTH
+from config import MAX_FILE_CHAR_LENGTH
 
 
 def get_file_content(working_directory, file_path):

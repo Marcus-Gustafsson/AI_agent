@@ -4,12 +4,12 @@ from google import genai
 from google.genai import types
 from rich import print # What it does: Beautiful text formatting, syntax highlighting, tables, progress bars, markdown, etc.
 from prompt_toolkit import prompt # Builds interactive input prompts (autocomplete, history, validation).
-
+from . import config # Config file with constants/other config variables.
+from functions.get_files_info import schema_get_files_info
 
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
-
 client = genai.Client(api_key=api_key)
 
 
@@ -29,8 +29,17 @@ def main():
     types.Content(role="user", parts=[types.Part(text=user_prompt)]), # role = "user" or "model" (AI/LLM = model)
     ]
 
+    available_functions = types.Tool(
+    function_declarations=[
+        schema_get_files_info,
+        ]
+    )
+
     response = client.models.generate_content(
-    model='gemini-2.0-flash-001', contents=messages)
+        model=config.model_name,
+        contents=messages,
+        config=types.GenerateContentConfig(tools=[available_functions], system_instruction=config.system_prompt),
+    )
 
     if verbose_flag != None:
         print(f"User prompt: {user_prompt}")
