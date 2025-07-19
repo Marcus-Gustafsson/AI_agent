@@ -7,7 +7,6 @@ timeout protection, and comprehensive output capture for AI agent code execution
 
 import os
 import subprocess
-from google.genai import types
 
 
 def run_python_file(working_directory, file_path, args=[]):

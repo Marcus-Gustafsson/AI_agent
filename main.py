@@ -14,6 +14,7 @@ from rich import print  # Beautiful text formatting, syntax highlighting, tables
 from prompt_toolkit import prompt  # Builds interactive input prompts (autocomplete, history, validation).
 import config  # Config file with constants/other config variables.
 import functions.function_schemas
+from functions.call_function import call_function
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,8 +39,7 @@ def main():
     verbose_flag = None
 
     # Check for optional verbose flag
-    if len(sys.argv) > 2:
-        verbose_flag = sys.argv[2]
+    verbose_flag = "--verbose" in sys.argv
 
     # Create message structure for the AI model
     # The Content object represents a single message in the conversation
@@ -71,7 +71,14 @@ def main():
     if response.function_calls:
         # AI decided to call one or more functions
         for function_call_part in response.function_calls:
-            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+
+            function_call_result = call_function(function_call_part, verbose=verbose_flag)
+            function_response_part = function_call_result.parts[0].function_response
+            
+            if function_response_part is None:
+                raise Exception("Fatal: No function response found in function_call_result")
+            if verbose_flag:
+                print(f"-> {function_response_part.response}")
     else:
         # AI provided a text response instead of calling a function
         print(f"[bold green]LLM Response:[/bold green] {response.text}")
