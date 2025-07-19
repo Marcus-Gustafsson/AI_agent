@@ -40,16 +40,12 @@ def get_file_content(working_directory, file_path):
     
     # Attempt to read the file content with proper error handling
     try:
-        print("DBG: trying to open file at path: ", target_full_path)  # Debug output
-        
         # Use context manager (with statement) for automatic file closure
         with open(target_full_path, "r") as file:
-            print("DBG: Reading file at path: ", target_full_path)  # Debug output
             
             # Read file content with length limitation to prevent memory issues
             # and avoid overwhelming the AI model with extremely large files
             file_content_string = file.read(MAX_FILE_CHAR_LENGTH)
-            print("DBG: file_content_string len = ", len(file_content_string))  # Debug output
             
             return file_content_string
 

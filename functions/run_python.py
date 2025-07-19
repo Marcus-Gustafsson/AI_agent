@@ -50,7 +50,6 @@ def run_python_file(working_directory, file_path, args=[]):
     try:
         # Build the complete command with python3 interpreter and arguments
         complete_args = ["python3", file_full_path] + args
-        # Uncomment for debugging: print("DBG: complete_args=", complete_args)
         
         # Execute the Python file with security constraints:
         # - timeout=30: Prevents infinite loops or long-running processes

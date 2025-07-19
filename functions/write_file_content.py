@@ -53,9 +53,7 @@ def write_file(working_directory, file_path, content):
     # Write the content to the file with proper error handling
     try:
         # Use context manager (with statement) for automatic file closure
-        with open(file_full_path, "w") as file:
-            print("DBG: Writing to file at path: ", file_full_path)  # Debug output
-            
+        with open(file_full_path, "w") as file:     
             # Write the content and provide feedback on success
             file.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
