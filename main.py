@@ -31,10 +31,7 @@ from prompt_toolkit import prompt  # Builds interactive input prompts (autocompl
 import config  # Config file with constants/other config variables.
 import functions.function_schemas
 from functions.call_function import call_function
-import warnings
 
-# Suppress warnings for cleaner output
-warnings.filterwarnings("ignore")
 
 # Load environment variables from .env file
 load_dotenv()
