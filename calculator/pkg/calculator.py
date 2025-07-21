@@ -7,9 +7,9 @@ class Calculator:
             "/": lambda a, b: a / b,
         }
         self.precedence = {
-            "+": 1, # Modified by AI Agent on 2025-07-20 20:05:00
-            "-": 1, # Modified by AI Agent on 2025-07-20 20:05:00
-            "*": 2, # Modified by AI Agent on 2025-07-20 20:05:00
+            "+": 1, # Modified by AI Agent on 2025-07-21 20:22:04
+            "-": 1, # Modified by AI Agent on 2025-07-21 20:22:04
+            "*": 2, # Modified by AI Agent on 2025-07-21 20:22:04
             "/": 2,
         }
 

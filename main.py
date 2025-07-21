@@ -227,5 +227,17 @@ def main():
 # ========== SCRIPT ENTRY POINT ==========
 # Standard Python idiom to ensure main() only runs when script is executed directly
 # (not when imported as a module)
+# ========== SCRIPT ENTRY POINT ==========
 if __name__ == "__main__":
-    main()
+    # Check if user wants TUI mode
+    if len(sys.argv) > 1 and sys.argv[1] == "--tui":
+        # Import and run TUI
+        try:
+            from tui import run_tui
+            run_tui()
+        except ImportError:
+            print("Error: Textual not installed. Run: uv add textual")
+            sys.exit(1)
+    else:
+        # Run original CLI mode
+        main()
