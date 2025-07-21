@@ -25,44 +25,92 @@ class AIAgentTUI(App):
     """A Textual app for the AI Agent interface."""
     
     CSS = """
+    /* CRT Terminal Theme - Adeptus Mechanicus */
+    Screen {
+        background: black;
+        color: #00FF00;
+    }
+
+    /* Fixed Omnissiah Header */
+    .header-container {
+        height: 3;
+        background: black;
+        border: solid #AA5500;
+        margin: 0 1 1 1;
+    }
+
+    .omnissiah-header {
+        background: black;
+        color: #AA5500;
+        text-align: center;
+        content-align: center middle;
+        height: 100%;
+        border: none;
+        text-style: bold;
+    }
+
+    /* Fixed Omnissiah Footer */
+    .footer-container {
+        height: 3;
+        background: black;
+        border: solid #AA5500;
+        margin: 0 1 0 1;
+    }
+
+    .omnissiah-footer {
+        background: black;
+        color: #AA5500;
+        text-align: center;
+        content-align: center middle;
+        height: 100%;
+        border: none;
+        text-style: dim;
+    }
+
     .chat-container {
         height: 1fr;
-        border: solid $primary;
-        margin: 1;
+        border: solid #AA5500;
+        margin: 0 1 1 1;
         padding: 1;
+        background: black;
+        color: #00FF00;
     }
 
     .input-container {
         height: auto;
-        margin: 1;
-        border: solid $secondary;
+        margin: 0 1 1 1;
+        border: solid #AA5500;
         padding: 1;
-    }
-
-    .user-message {
-        background: $primary 20%;
-        color: $text;
-        margin: 1 0;
-        padding: 1;
-    }
-
-    .agent-message {
-        background: $secondary 20%;
-        color: $text;
-        margin: 1 0;
-        padding: 1;
-    }
-
-    .system-message {
-        background: $warning 20%;
-        color: $text;
-        margin: 1 0;
-        padding: 1;
+        background: black;
+        color: #00FF00;
     }
 
     RichLog {
         scrollbar-gutter: stable;
         overflow-x: hidden;
+        background: black;
+        color: #00FF00;
+    }
+
+    Input {
+        background: black;
+        color: #00FF00;
+        border: solid #AA5500;
+    }
+
+    Input:focus {
+        border: solid #AA5500;
+        background: black;
+        color: #00FF00;
+    }
+
+    Container {
+        background: black;
+    }
+
+    Static {
+        background: black;
+        color: #00FF00;
     }
     """
     
@@ -79,23 +127,38 @@ class AIAgentTUI(App):
         
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
-        yield Header()
+        # Fixed header bar
+        with Container(classes="header-container"):
+            yield Static("OMNISSIAH INTERFACE v1.0", id="header", classes="omnissiah-header")
         
         with Container(classes="chat-container"):
             yield RichLog(id="chat_log", highlight=True, markup=True, wrap=True)
         
         with Container(classes="input-container"):
             yield Input(
-                placeholder="Type your message to the AI agent...",
+                placeholder="█ ENTER COMMAND: _",
                 id="message_input"
             )
-        
-        yield Footer()
-    
+
+        # Fixed footer with commands
+        with Container(classes="footer-container"):
+            yield Static("F1=Verbose | Ctrl+L=Clear | Ctrl+C=Quit | STATUS: MACHINE SPIRIT ACTIVE", 
+                        id="footer", classes="omnissiah-footer")
+
     def on_mount(self) -> None:
         """Called when app starts."""
-        self.query_one("#chat_log").write("🤖 AI Agent Ready! Type your message below.")
+        welcome_msg = """[#AA5500]╔═══════════════════════════════════════════════════════════════╗
+    ║                 MACHINE SPIRIT AWAKENED                      ║
+    ║                   COGITATOR ONLINE                           ║
+    ║                 [#00FF00]>>> READY FOR INPUT <<<[/#00FF00]                  ║
+    ╚═══════════════════════════════════════════════════════════════╝[/#AA5500]
+
+    [#00FF00]▓▓▓ OMNISSIAH PROTOCOL INITIALIZED ▓▓▓
+    >>> Awaiting sacred incantations...[/#00FF00]"""
+        
+        self.query_one("#chat_log").write(welcome_msg)
         self.query_one("#message_input").focus()
+        self.messages = []
     
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Called when user submits input."""
@@ -119,10 +182,9 @@ class AIAgentTUI(App):
         timestamp = datetime.now().strftime("%H:%M:%S")
         chat_log.write(f"[bold blue]👤 You ({timestamp}):[/bold blue] {user_message}")
         
-        # Initialize conversation
-        self.messages = [
-            types.Content(role="user", parts=[types.Part(text=user_message)])
-        ]
+        # ADD user message to existing conversation (don't reset!)
+        user_content = types.Content(role="user", parts=[types.Part(text=user_message)])
+        self.messages.append(user_content)
         
         # Available functions
         available_functions = types.Tool(function_declarations=functions.function_schemas.ALL_SCHEMAS)
@@ -130,17 +192,17 @@ class AIAgentTUI(App):
         try:
             # Agent loop
             for iteration in range(20):
-                # Generate AI response
+                # Generate AI response using FULL conversation history
                 response = client.models.generate_content(
                     model=config.model_name,
-                    contents=self.messages,
+                    contents=self.messages,  # This now contains all previous messages!
                     config=types.GenerateContentConfig(
                         tools=[available_functions],
                         system_instruction=config.system_prompt
                     ),
                 )
                 
-                # Add AI response to conversation
+                # Add AI response to conversation history
                 for candidate in response.candidates:
                     self.messages.append(candidate.content)
                 
@@ -189,7 +251,7 @@ class AIAgentTUI(App):
                                 preview = content[:100] + "..." if len(content) > 100 else content
                                 chat_log.write(f"[green]📄 Result: {preview}[/green]")
                         
-                        # Add to conversation
+                        # Add function result to conversation history
                         tool_message = types.Content(role="tool", parts=function_call_result.parts)
                         self.messages.append(tool_message)
         
@@ -213,8 +275,8 @@ class AIAgentTUI(App):
 def run_tui():
     """Run the TUI application."""
     app = AIAgentTUI()
-    app.title = "AI Agent TUI"
-    app.sub_title = "Interactive AI Assistant"
+    app.title = "◉ AI AGENT TERMINAL ◉"
+    app.sub_title = ""  # Remove subtitle for cleaner look
     app.run()
 
 
