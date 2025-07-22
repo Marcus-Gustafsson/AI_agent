@@ -11,8 +11,10 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Button, Header, Footer, Input, RichLog, Switch, Static
 from textual.binding import Binding
 from textual import events
+import random
 import asyncio
 from datetime import datetime
+# ... your other imports
 
 # Import your existing main logic
 from main import client, config
@@ -279,8 +281,10 @@ class AIAgentTUI(App):
 
 
 
+import random
+
 class BootScreen(App):
-    """Simple boot test screen."""
+    """Terminal-style boot sequence with glitches and random messages."""
     
     CSS = """
     Screen {
@@ -299,18 +303,204 @@ class BootScreen(App):
     Static {
         background: #001100;
         color: #00FF00;
+        text-align: left;
+        content-align: left top;
     }
     """
+    
+    def __init__(self):
+        super().__init__()
+        
+        # Fixed opening lines
+        self.opening_lines = [
+            "+++ OM█I██IAH INT█RFACE V3.442 +++",
+            "::Init█ating RITE OF AW█KENING::",
+            ""
+        ]
+        
+        # Random prayers/processes (pick 4-6 randomly)
+        self.random_prayers = [
+            "⚙ Blessing cogitator arrays...",
+            "⚙ Reciting Litany of Ignition...",
+            "⚙ Appeasing the Machine God...",
+            "⚙ Burning sacred incense to cogitators...",
+            "⚙ Chanting the Canticle of Reboot...",
+            "⚙ Loading sacred protocols...",
+            "⚙ Communing with machine spirits...",
+            "⚙ Sanctifying data-conduits...",
+            "⚙ Invoking the Canticles of Maintenance...",
+            "⚙ Purifying memory banks with holy oils...",
+            "⚙ Offering prayers to the Omnissiah..."
+        ]
+        
+        # Random glitch/error messages
+        self.glitch_messages = [
+            "[WARNING] >HERETICAL CODE DETECTED - PURGING...",
+            "[ERROR] >MACHINE SPIRIT RESISTING - APPLYING SACRED OILS...",
+            "[CORRUPT] >DATA-STREAM TAINTED - CLEANSING...",
+            "[BLESSED] >PURGE COMPLETE - OMNISSIAH BE PRAISED",
+            "[HOLY] >MACHINE SPIRIT ACCEPTS OUR OFFERINGS",
+            "[CAUTION] >MEMORY CORRUPTION: 23% - BLESSING IN PROGRESS...",
+            "[SACRED] >RESTORATION RITUALS SUCCESSFUL"
+        ]
+        
+        # Fixed ending lines
+        self.ending_lines = [
+            "",
+            ">>> MACHINE SPIRIT AWAKENED <<<",
+            ">>> COGITATOR ONLINE <<<", 
+            ">>> BLESSED BE THE MACHINE <<<",
+            "",
+            "SYSTEM READY"
+        ]
+        
+        # Build randomized boot sequence
+        self.boot_lines = self.build_boot_sequence()
+        
+        # Typing state
+        self.completed_lines = []
+        self.current_line_index = 0
+        self.current_char_index = 0
+        self.current_partial_line = ""
+    
+    def build_boot_sequence(self):
+        """Build a randomized boot sequence with glitches."""
+        sequence = []
+        
+        # Add opening lines
+        sequence.extend(self.opening_lines)
+        
+        # Add random prayers (4-6 of them)
+        selected_prayers = random.sample(self.random_prayers, random.randint(4, 6))
+        sequence.extend(selected_prayers)
+        
+        # Randomly insert 1-3 glitch messages
+        num_glitches = random.randint(1, 3)
+        for _ in range(num_glitches):
+            glitch = random.choice(self.glitch_messages)
+            # Insert glitch at random position in prayers section
+            insert_pos = len(self.opening_lines) + random.randint(1, len(selected_prayers))
+            sequence.insert(insert_pos, glitch)
+        
+        # Add ending lines
+        sequence.extend(self.ending_lines)
+        
+        return sequence
+    
+    def add_text_corruption(self, text):
+        """Randomly corrupt some characters in text."""
+        if random.random() < 0.15:  # 15% chance to corrupt a line
+            chars = list(text)
+            num_corruptions = random.randint(1, min(3, len(chars) // 6))
+            
+            for _ in range(num_corruptions):
+                if len(chars) > 5:  # Don't corrupt very short lines
+                    pos = random.randint(1, len(chars) - 2)  # Avoid first/last char
+                    if chars[pos].isalnum():  # Only corrupt letters/numbers
+                        chars[pos] = random.choice(['█', '▓', '▒', '░', '?', '#'])
+            
+            return ''.join(chars)
+        return text
     
     def compose(self) -> ComposeResult:
         """Create the boot screen layout."""
         with Container(classes="boot-container"):
-            yield Static("TESTING - CAN YOU SEE THIS?", id="test_text")
+            yield Static("", id="boot_display")
     
     def on_mount(self) -> None:
-        """Start simple test."""
-        # Just wait 3 seconds then exit
-        self.set_timer(3.0, self.exit)
+        """Start character-by-character boot sequence."""
+        self.type_next_character()
+    
+    def type_next_character(self) -> None:
+        """Type the next character of the current line."""
+        if self.current_line_index >= len(self.boot_lines):
+            # All lines completed, start cursor blink
+            self.start_cursor_blink()
+            return
+        
+        current_line = self.boot_lines[self.current_line_index]
+        
+        # Apply corruption to current line (only once when starting the line)
+        if self.current_char_index == 0 and current_line:
+            current_line = self.add_text_corruption(current_line)
+            self.boot_lines[self.current_line_index] = current_line
+        
+        if self.current_char_index < len(current_line):
+            # Add next character to partial line
+            self.current_partial_line += current_line[self.current_char_index]
+            self.current_char_index += 1
+            
+            # Build complete display text with ALL previous lines + current partial line
+            if self.completed_lines:
+                display_text = "\n".join(self.completed_lines) + "\n" + self.current_partial_line
+            else:
+                display_text = self.current_partial_line
+            
+            display = self.query_one("#boot_display")
+            display.update(display_text)
+            
+            # Variable typing speed based on character
+            char = current_line[self.current_char_index - 1]
+            if char == ' ':
+                delay = random.uniform(0.01, 0.03)  # Fast spaces
+            elif char in '⚙><+:[█▓▒░':
+                delay = random.uniform(0.1, 0.2)   # Slow special/corrupt chars
+            elif char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+                delay = random.uniform(0.04, 0.09) # Medium capitals
+            else:
+                delay = random.uniform(0.02, 0.06) # Fast lowercase/numbers
+            
+            # Random micro-glitches (very rare pauses)
+            if random.random() < 0.02:  # 2% chance
+                delay += random.uniform(0.2, 0.5)
+            
+            self.set_timer(delay, self.type_next_character)
+            
+        else:
+            # Current line completed - add the COMPLETE line to completed_lines
+            self.completed_lines.append(self.boot_lines[self.current_line_index])  # Correct - uses the modified array version
+            self.current_partial_line = ""
+            self.current_char_index = 0
+            self.current_line_index += 1
+            
+            # Pause between lines
+            if self.current_line_index < len(self.boot_lines):
+                next_line = self.boot_lines[self.current_line_index]
+                if next_line == "":
+                    line_delay = random.uniform(0.3, 0.6)  # Longer pause for spacing
+                elif next_line.startswith("["):
+                    line_delay = random.uniform(0.5, 1.0)  # Extra long pause for error/warning messages
+                else:
+                    line_delay = random.uniform(0.1, 0.3)  # Normal pause between lines
+            else:
+                line_delay = 0.1
+            
+            self.set_timer(line_delay, self.type_next_character)
+    
+    def start_cursor_blink(self) -> None:
+        """Start the blinking cursor effect."""
+        self.blink_count = 0
+        self.cursor_visible = True
+        self.blink_cursor()
+    
+    def blink_cursor(self) -> None:
+        """Toggle cursor visibility."""
+        display = self.query_one("#boot_display")
+        base_content = "\n".join(self.completed_lines)
+        
+        if self.cursor_visible:
+            display.update(base_content + "\n█")
+        else:
+            display.update(base_content + "\n ")
+        
+        self.cursor_visible = not self.cursor_visible
+        self.blink_count += 1
+        
+        if self.blink_count < 6:  # Blink 3 times
+            self.set_timer(0.4, self.blink_cursor)
+        else:
+            # Exit to main interface
+            self.set_timer(0.5, self.exit)
 
 
 
