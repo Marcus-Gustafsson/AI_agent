@@ -25,91 +25,97 @@ class AIAgentTUI(App):
     """A Textual app for the AI Agent interface."""
     
     CSS = """
-    /* CRT Terminal Theme - Adeptus Mechanicus */
+    /* Adeptus Mechanicus Green CRT Terminal Theme */
     Screen {
-        background: black;
+        background: #001100;
         color: #00FF00;
     }
 
     /* Fixed Omnissiah Header */
     .header-container {
         height: 3;
-        background: black;
-        border: solid #AA5500;
+        background: #001100;
         margin: 0 1 1 1;
     }
 
     .omnissiah-header {
-        background: black;
-        color: #AA5500;
+        background: #001100;
+        color: #00FF00;
         text-align: center;
         content-align: center middle;
         height: 100%;
         border: none;
         text-style: bold;
+        width: 100%;
     }
 
     /* Fixed Omnissiah Footer */
     .footer-container {
         height: 3;
-        background: black;
-        border: solid #AA5500;
+        background: #001100;
         margin: 0 1 0 1;
     }
 
     .omnissiah-footer {
-        background: black;
-        color: #AA5500;
+        background: #001100;
+        color: #00CC00;
         text-align: center;
         content-align: center middle;
         height: 100%;
         border: none;
         text-style: dim;
+        width: 100%;
     }
 
     .chat-container {
         height: 1fr;
-        border: solid #AA5500;
         margin: 0 1 1 1;
         padding: 1;
-        background: black;
+        background: #001100;
         color: #00FF00;
     }
 
     .input-container {
         height: auto;
         margin: 0 1 1 1;
-        border: solid #AA5500;
         padding: 1;
-        background: black;
+        background: #001100;
         color: #00FF00;
     }
 
     RichLog {
         scrollbar-gutter: stable;
         overflow-x: hidden;
-        background: black;
+        background: #001100;
         color: #00FF00;
+        scrollbar-background: #001100;
+        scrollbar-color: #00AA00;
     }
 
     Input {
-        background: black;
+        background: #001100;
         color: #00FF00;
-        border: solid #AA5500;
+        border: #00AA00;
     }
 
     Input:focus {
-        border: solid #AA5500;
-        background: black;
+        border: #00FF00;
+        background: #002200;
         color: #00FF00;
     }
 
+    Input > .input--placeholder {
+        color: #006600;
+        text-style: dim;
+        
+    }
+
     Container {
-        background: black;
+        background: #001100;
     }
 
     Static {
-        background: black;
+        background: #001100;
         color: #00FF00;
     }
     """
@@ -129,32 +135,32 @@ class AIAgentTUI(App):
         """Create child widgets for the app."""
         # Fixed header bar
         with Container(classes="header-container"):
-            yield Static("OMNISSIAH INTERFACE v1.0", id="header", classes="omnissiah-header")
+            yield Static("⚙ OMNISSIAH INTERFACE v1.0 ⚙", id="header", classes="omnissiah-header")
         
         with Container(classes="chat-container"):
             yield RichLog(id="chat_log", highlight=True, markup=True, wrap=True)
         
         with Container(classes="input-container"):
             yield Input(
-                placeholder="█ ENTER COMMAND: _",
+                placeholder="> Enter prayer code to the machine spirit...",
                 id="message_input"
             )
-
+        
         # Fixed footer with commands
         with Container(classes="footer-container"):
-            yield Static("F1=Verbose | Ctrl+L=Clear | Ctrl+C=Quit | STATUS: MACHINE SPIRIT ACTIVE", 
+            yield Static("⚙ F1=Vox-Log | Ctrl+L=Purge | Ctrl+C=Disconnect | STATUS: MACHINE SPIRIT ACTIVE ⚙", 
                         id="footer", classes="omnissiah-footer")
-
+            
     def on_mount(self) -> None:
         """Called when app starts."""
-        welcome_msg = """[#AA5500]╔═══════════════════════════════════════════════════════════════╗
-    ║                 MACHINE SPIRIT AWAKENED                      ║
-    ║                   COGITATOR ONLINE                           ║
-    ║                 [#00FF00]>>> READY FOR INPUT <<<[/#00FF00]                  ║
-    ╚═══════════════════════════════════════════════════════════════╝[/#AA5500]
+        welcome_msg = """[bold #00FF00]╔═══════════════════════════════════════════════════════════════╗
+    ║              ⚙ MACHINE SPIRIT COMMUNION ⚙                   ║
+    ║                   COGITATOR ACTIVE                           ║
+    ║              >>> AWAITING YOUR COMMAND <<<                   ║
+    ╚═══════════════════════════════════════════════════════════════╝[/bold #00FF00]
 
-    [#00FF00]▓▓▓ OMNISSIAH PROTOCOL INITIALIZED ▓▓▓
-    >>> Awaiting sacred incantations...[/#00FF00]"""
+    [#00CC00]The Omnissiah blesses this sacred interface.
+    Speak your prayers, and the machine spirit shall respond...[/#00CC00]"""
         
         self.query_one("#chat_log").write(welcome_msg)
         self.query_one("#message_input").focus()
@@ -272,12 +278,54 @@ class AIAgentTUI(App):
         self.query_one("#chat_log").write(f"[yellow]🔧 Verbose mode: {mode}[/yellow]")
 
 
+
+class BootScreen(App):
+    """Simple boot test screen."""
+    
+    CSS = """
+    Screen {
+        background: #001100;
+        color: #00FF00;
+    }
+    
+    .boot-container {
+        height: 100%;
+        width: 100%;
+        background: #001100;
+        border: thick #00AA00;
+        padding: 2;
+    }
+    
+    Static {
+        background: #001100;
+        color: #00FF00;
+    }
+    """
+    
+    def compose(self) -> ComposeResult:
+        """Create the boot screen layout."""
+        with Container(classes="boot-container"):
+            yield Static("TESTING - CAN YOU SEE THIS?", id="test_text")
+    
+    def on_mount(self) -> None:
+        """Start simple test."""
+        # Just wait 3 seconds then exit
+        self.set_timer(3.0, self.exit)
+
+
+
 def run_tui():
-    """Run the TUI application."""
-    app = AIAgentTUI()
-    app.title = "◉ AI AGENT TERMINAL ◉"
-    app.sub_title = ""  # Remove subtitle for cleaner look
-    app.run()
+    """Run the TUI application with boot sequence."""
+    # First show boot screen
+    boot_app = BootScreen()
+    boot_app.title = "OMNISSIAH AWAKENING"
+    boot_app.run()
+    
+    # Then show main interface
+    main_app = AIAgentTUI()
+    main_app.title = "AI Agent TUI"
+    main_app.sub_title = "Interactive AI Assistant"
+    main_app.run()
 
 
 if __name__ == "__main__":
