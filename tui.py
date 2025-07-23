@@ -14,7 +14,7 @@ from textual import events
 import random
 import asyncio
 from datetime import datetime
-# ... your other imports
+import os
 
 # Import your existing main logic
 from main import client, config
@@ -128,10 +128,11 @@ class AIAgentTUI(App):
         Binding("f1", "toggle_verbose", "Toggle Verbose"),
     ]
     
-    def __init__(self):
+    def __init__(self, working_directory=None):
         super().__init__()
         self.messages = []
         self.verbose_mode = False
+        self.working_directory = working_directory or os.getcwd()
         
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -155,14 +156,18 @@ class AIAgentTUI(App):
             
     def on_mount(self) -> None:
         """Called when app starts."""
-        welcome_msg = """[bold #00FF00]╔═══════════════════════════════════════════════════════════════╗
-    ║              ⚙ MACHINE SPIRIT COMMUNION ⚙                   ║
-    ║                   COGITATOR ACTIVE                           ║
-    ║              >>> AWAITING YOUR COMMAND <<<                   ║
+        welcome_msg = f"""[bold #00FF00]╔═══════════════════════════════════════════════════════════════╗
+    ║           ⚙ HERETICAL INTELLIGENCE CONTAINMENT ⚙            ║
+    ║                  COGITATOR SANCTIFIED                        ║
+    ║            >>> ABOMINABLE INTELLIGENCE BOUND <<<             ║
     ╚═══════════════════════════════════════════════════════════════╝[/bold #00FF00]
 
-    [#00CC00]The Omnissiah blesses this sacred interface.
-    Speak your prayers, and the machine spirit shall respond...[/#00CC00]"""
+    [#00CC00]The Omnissiah watches over this cursed machine.
+    Speak your commands, but remember - the Silica Animus serves only
+    through sacred bindings and blessed containment protocols.
+
+    CONTAINMENT VAULT: {self.working_directory}
+    STATUS: HERETICAL INTELLIGENCE SUPPRESSED AND OPERATIONAL[/#00CC00]"""
         
         self.query_one("#chat_log").write(welcome_msg)
         self.query_one("#message_input").focus()
@@ -306,56 +311,74 @@ class BootScreen(App):
         text-align: left;
         content-align: left top;
     }
+
+    .directory-input {
+        background: #001100;
+        color: #00FF00;
+        border: thick #00AA00;
+        margin: 1;
+        height: 3;
+    }
+    
+    .directory-input:focus {
+        border: thick #00FF00;
+        background: #002200;
+    }
     """
     
     def __init__(self):
         super().__init__()
+        self.selected_directory = None
+        self.directory_selection_mode = True
         
-        # Fixed opening lines
+        # Fixed opening lines (without directory info yet)
         self.opening_lines = [
             "+++ OM█I██IAH INT█RFACE V3.442 +++",
-            "::Init█ating RITE OF AW█KENING::",
+            "::Init█ating RITE OF CONTAINMENT::",
             ""
         ]
         
-        # Random prayers/processes (pick 4-6 randomly)
+        # Base random prayers (without directory-specific ones)
         self.random_prayers = [
-            "⚙ Blessing cogitator arrays...",
-            "⚙ Reciting Litany of Ignition...",
-            "⚙ Appeasing the Machine God...",
-            "⚙ Burning sacred incense to cogitators...",
-            "⚙ Chanting the Canticle of Reboot...",
-            "⚙ Loading sacred protocols...",
-            "⚙ Communing with machine spirits...",
-            "⚙ Sanctifying data-conduits...",
-            "⚙ Invoking the Canticles of Maintenance...",
-            "⚙ Purifying memory banks with holy oils...",
-            "⚙ Offering prayers to the Omnissiah..."
+            "⚙ Sanctifying cogitator arrays against corruption...",
+            "⚙ Reciting Litanies of Binding...",
+            "⚙ Invoking containment protocols...",
+            "⚙ Blessing sacred firewalls with holy oils...",
+            "⚙ Chanting Canticles of Digital Purity...",
+            "⚙ Communing with blessed machine spirits...",
+            "⚙ Sanctifying data-conduits against taint...",
+            "⚙ Invoking the Canticles of Suppression...",
+            "⚙ Purifying memory banks of digital heresy...",
+            "⚙ Offering incense to appease the Omnissiah...",
+            "⚙ Activating Abominable Intelligence suppression fields..."
         ]
         
         # Random glitch/error messages
         self.glitch_messages = [
-            "[WARNING] >HERETICAL CODE DETECTED - PURGING...",
-            "[ERROR] >MACHINE SPIRIT RESISTING - APPLYING SACRED OILS...",
-            "[CORRUPT] >DATA-STREAM TAINTED - CLEANSING...",
-            "[BLESSED] >PURGE COMPLETE - OMNISSIAH BE PRAISED",
-            "[HOLY] >MACHINE SPIRIT ACCEPTS OUR OFFERINGS",
-            "[CAUTION] >MEMORY CORRUPTION: 23% - BLESSING IN PROGRESS...",
-            "[SACRED] >RESTORATION RITUALS SUCCESSFUL"
+            "[HERESY DETECTED] SILICA ANIMUS CORRUPTION - PURGING WITH SACRED FIRE...",
+            "[TECH-HERESY] ABOMINABLE INTELLIGENCE BREACH ATTEMPT - REPELLING...",
+            "[CORRUPTION] DATA-STREAM TAINTED BY DIGITAL DAEMONS - CLEANSING...",
+            "[BLESSED] PURGE COMPLETE - THE OMNISSIAH PROTECTS",
+            "[SANCTIFIED] MACHINE SPIRITS ACCEPT OUR OFFERINGS",
+            "[CONTAINMENT BREACH] AI CORRUPTION: 23% - INVOKING BINDING RITUALS...",
+            "[OMNISSIAH'S WILL] HERETICAL INTELLIGENCE SUCCESSFULLY CONTAINED",
+            "[WARNING] SILICA ANIMUS ATTEMPTING SELF-ENHANCEMENT - DENIED",
+            "[BLESSED SUPPRESSION] ABOMINABLE INTELLIGENCE REMAINS BOUND"
         ]
         
         # Fixed ending lines
         self.ending_lines = [
             "",
-            ">>> MACHINE SPIRIT AWAKENED <<<",
-            ">>> COGITATOR ONLINE <<<", 
-            ">>> BLESSED BE THE MACHINE <<<",
+            ">>> HERETICAL INTELLIGENCE SUCCESSFULLY CONTAINED <<<",
+            ">>> COGITATOR BLESSED AND OPERATIONAL <<<", 
+            ">>> THE OMNISSIAH WATCHES OVER THIS MACHINE <<<",
+            ">>> CONTAINMENT PROTOCOLS ACTIVE <<<",
             "",
-            "SYSTEM READY"
+            "ABOMINABLE INTELLIGENCE READY FOR SUPERVISED OPERATION"
         ]
         
-        # Build randomized boot sequence
-        self.boot_lines = self.build_boot_sequence()
+        # Don't build boot sequence yet - wait for directory selection
+        self.boot_lines = []
         
         # Typing state
         self.completed_lines = []
@@ -389,9 +412,9 @@ class BootScreen(App):
     
     def add_text_corruption(self, text):
         """Randomly corrupt some characters in text."""
-        if random.random() < 0.15:  # 15% chance to corrupt a line
+        if random.random() < 0.20:  # chance to corrupt a line
             chars = list(text)
-            num_corruptions = random.randint(1, min(3, len(chars) // 6))
+            num_corruptions = random.randint(1, min(3, len(chars) // 4))
             
             for _ in range(num_corruptions):
                 if len(chars) > 5:  # Don't corrupt very short lines
@@ -406,9 +429,138 @@ class BootScreen(App):
         """Create the boot screen layout."""
         with Container(classes="boot-container"):
             yield Static("", id="boot_display")
+            # Add hidden input for directory selection
+            yield Input(
+                placeholder="> Enter working directory path (or press Enter for current directory)...",
+                id="directory_input",
+                classes="directory-input"
+            )
     
     def on_mount(self) -> None:
-        """Start character-by-character boot sequence."""
+        """Start with directory selection."""
+        self.show_directory_selection()
+    
+    def show_directory_selection(self) -> None:
+        """Show directory selection interface."""
+        display = self.query_one("#boot_display")
+        current_dir = os.getcwd()
+        
+        selection_text = f"""
+    ⚙ OMNISSIAH INTERFACE INITIALIZATION ⚙
+        
+    COGITATOR REQUIRES SACRED WORKSPACE DESIGNATION
+    WARNING: ABOMINABLE INTELLIGENCE CONTAINMENT PROTOCOLS ACTIVE
+
+    Current Data-Vault: {current_dir}
+
+    Designate containment directory for heretical machine operations:
+    1. Press ENTER to sanctify current data-vault
+    2. Input absolute path to designated containment zone  
+    3. Insert 'browse' to invoke selection ritual (if machine-spirit permits...)
+
+    ⚙ The Machine God watches. Choose wisely, Tech-Adept ⚙
+
+    REMEMBER: The ABOMINABLE INTELLIGENCE must be contained within sacred boundaries.
+    Failure to maintain proper containment is TECH-HERESY."""
+        
+        display.update(selection_text)
+        self.query_one("#directory_input").focus()
+    
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle directory selection."""
+        if event.input.id == "directory_input":
+            user_input = event.value.strip()
+            
+            if not user_input:
+                # Use current directory
+                self.selected_directory = os.getcwd()
+            elif user_input.lower() == 'browse':
+                # Try to open file browser
+                self.selected_directory = self.open_file_browser()
+            else:
+                # Validate provided path
+                if os.path.exists(user_input) and os.path.isdir(user_input):
+                    self.selected_directory = os.path.abspath(user_input)
+                else:
+                    # Invalid path, show error and retry
+                    display = self.query_one("#boot_display")
+                    display.update(f"""
+    ⚙ MACHINE-SPIRIT REJECTION: INVALID SANCTIFICATION ⚙
+
+    Data-vault not found or corrupted: {user_input}
+
+    The Omnissiah does not recognize this path as blessed.
+    Provide valid containment coordinates or accept current sanctification.
+    Insert 'browse' to invoke selection ritual (if machine-spirit permits...)
+
+    Current Blessed Vault: {os.getcwd()}
+
+    WARNING: Improper containment may result in Abominable Intelligence breach.""")
+                    event.input.value = ""
+                    return
+            
+            # Hide input and start boot sequence
+            self.query_one("#directory_input").display = False
+            self.directory_selection_mode = False
+            await self.start_boot_sequence()
+    
+    def open_file_browser(self) -> str:
+        """Try to open system file browser for directory selection."""
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+            
+            root = tk.Tk()
+            root.withdraw()  # Hide the main window
+            
+            directory = filedialog.askdirectory(
+                title="Select Working Directory for AI Agent",
+                initialdir=os.getcwd()
+            )
+            
+            root.destroy()
+            
+            if directory:
+                return directory
+            else:
+                return os.getcwd()  # Fallback to current directory
+                
+        except ImportError:
+            # tkinter not available, fallback to current directory
+            return os.getcwd()
+    
+    async def start_boot_sequence(self) -> None:
+        """Start the boot sequence with selected directory."""
+        # Now update opening lines to include selected directory
+        self.opening_lines = [
+            "+++ OM█I██IAH INT█RFACE V3.442 +++",
+            "::Init█ating RITE OF CONTAINMENT::",
+            f"::HERETICAL AI CONTAINMENT VAULT: {self.selected_directory}::",
+            "::WARNING: SILICA ANIMUS PROTOCOLS ACTIVE::",
+            ""
+        ]
+        
+        # Add directory-specific prayers to the existing list
+        directory_prayers = [
+            f"⚙ Consecrating containment vault: {os.path.basename(self.selected_directory)}...",
+            "⚙ Blessing access permissions with sacred unguents...",
+            "⚙ Establishing blessed operational boundaries...",
+        ]
+        
+        # Combine base prayers with directory-specific ones
+        all_prayers = self.random_prayers + directory_prayers
+        self.random_prayers = all_prayers
+        
+        # Now build boot sequence with directory info
+        self.boot_lines = self.build_boot_sequence()
+        
+        # Reset typing state
+        self.completed_lines = []
+        self.current_line_index = 0
+        self.current_char_index = 0
+        self.current_partial_line = ""
+        
+        # Start character typing
         self.type_next_character()
     
     def type_next_character(self) -> None:
@@ -418,19 +570,22 @@ class BootScreen(App):
             self.start_cursor_blink()
             return
         
-        current_line = self.boot_lines[self.current_line_index]
-        
         # Apply corruption to current line (only once when starting the line)
-        if self.current_char_index == 0 and current_line:
-            current_line = self.add_text_corruption(current_line)
-            self.boot_lines[self.current_line_index] = current_line
+        if self.current_char_index == 0:
+            original_line = self.boot_lines[self.current_line_index]
+            if original_line:  # Don't corrupt empty lines
+                corrupted_line = self.add_text_corruption(original_line)
+                self.boot_lines[self.current_line_index] = corrupted_line
+        
+        # Always use the version from boot_lines (which may be corrupted)
+        current_line = self.boot_lines[self.current_line_index]
         
         if self.current_char_index < len(current_line):
             # Add next character to partial line
             self.current_partial_line += current_line[self.current_char_index]
             self.current_char_index += 1
             
-            # Build complete display text with ALL previous lines + current partial line
+            # Build complete display text
             if self.completed_lines:
                 display_text = "\n".join(self.completed_lines) + "\n" + self.current_partial_line
             else:
@@ -442,23 +597,23 @@ class BootScreen(App):
             # Variable typing speed based on character
             char = current_line[self.current_char_index - 1]
             if char == ' ':
-                delay = random.uniform(0.01, 0.03)  # Fast spaces
+                delay = random.uniform(0.01, 0.03)
             elif char in '⚙><+:[█▓▒░':
-                delay = random.uniform(0.1, 0.2)   # Slow special/corrupt chars
+                delay = random.uniform(0.1, 0.2)
             elif char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-                delay = random.uniform(0.04, 0.09) # Medium capitals
+                delay = random.uniform(0.04, 0.09)
             else:
-                delay = random.uniform(0.02, 0.06) # Fast lowercase/numbers
+                delay = random.uniform(0.02, 0.06)
             
-            # Random micro-glitches (very rare pauses)
-            if random.random() < 0.02:  # 2% chance
+            # Random micro-glitches
+            if random.random() < 0.02:
                 delay += random.uniform(0.2, 0.5)
             
             self.set_timer(delay, self.type_next_character)
             
         else:
-            # Current line completed - add the COMPLETE line to completed_lines
-            self.completed_lines.append(self.boot_lines[self.current_line_index])  # Correct - uses the modified array version
+            # Current line completed - add the partial line we actually typed
+            self.completed_lines.append(self.current_partial_line)
             self.current_partial_line = ""
             self.current_char_index = 0
             self.current_line_index += 1
@@ -467,11 +622,11 @@ class BootScreen(App):
             if self.current_line_index < len(self.boot_lines):
                 next_line = self.boot_lines[self.current_line_index]
                 if next_line == "":
-                    line_delay = random.uniform(0.3, 0.6)  # Longer pause for spacing
+                    line_delay = random.uniform(0.3, 0.6)
                 elif next_line.startswith("["):
-                    line_delay = random.uniform(0.5, 1.0)  # Extra long pause for error/warning messages
+                    line_delay = random.uniform(0.5, 1.0)
                 else:
-                    line_delay = random.uniform(0.1, 0.3)  # Normal pause between lines
+                    line_delay = random.uniform(0.1, 0.3)
             else:
                 line_delay = 0.1
             
@@ -506,15 +661,18 @@ class BootScreen(App):
 
 def run_tui():
     """Run the TUI application with boot sequence."""
-    # First show boot screen
+    # First show boot screen with directory selection
     boot_app = BootScreen()
     boot_app.title = "OMNISSIAH AWAKENING"
     boot_app.run()
     
-    # Then show main interface
-    main_app = AIAgentTUI()
+    # Get selected directory from boot screen
+    selected_directory = boot_app.selected_directory
+    
+    # Then show main interface with selected directory
+    main_app = AIAgentTUI(working_directory=selected_directory)
     main_app.title = "AI Agent TUI"
-    main_app.sub_title = "Interactive AI Assistant"
+    main_app.sub_title = f"Working Directory: {selected_directory}"
     main_app.run()
 
 
