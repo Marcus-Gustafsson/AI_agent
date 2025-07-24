@@ -429,42 +429,148 @@ class BootScreen(App):
         """Create the boot screen layout."""
         with Container(classes="boot-container"):
             yield Static("", id="boot_display")
-            # Add hidden input for directory selection
+            # Add hidden input for directory selection (initially hidden)
             yield Input(
                 placeholder="> Enter working directory path (or press Enter for current directory)...",
                 id="directory_input",
                 classes="directory-input"
             )
-    
+
     def on_mount(self) -> None:
-        """Start with directory selection."""
+        """Start with directory selection typing."""
+        # Hide input field initially
+        self.query_one("#directory_input").display = False
+        # Start typing the directory selection
         self.show_directory_selection()
     
     def show_directory_selection(self) -> None:
-        """Show directory selection interface."""
-        display = self.query_one("#boot_display")
+        """Show directory selection interface with typing effect."""
         current_dir = os.getcwd()
         
-        selection_text = f"""
-    ⚙ OMNISSIAH INTERFACE INITIALIZATION ⚙
+        # Create the directory selection text as lines to be typed
+        self.directory_selection_lines = [
+            "⚙ OMNISSIAH INTERFACE INITIALIZATION ⚙",
+            "",
+            "COGITATOR REQUIRES SACRED WORKSPACE DESIGNATION",
+            "WARNING: ABOMINABLE INTELLIGENCE CONTAINMENT PROTOCOLS ACTIVE",
+            "",
+            f"Current Data-Vault: {current_dir}",
+            "",
+            "Designate containment directory for heretical machine operations:",
+            "1. Press ENTER to sanctify current data-vault",
+            "2. Input absolute path to designated containment zone",
+            "3. Insert 'browse' to invoke selection ritual (if machine-spirit permits...)",
+            "",
+            "⚙ The Machine God watches. Choose wisely, Tech-Adept ⚙",
+            "",
+            "REMEMBER: The ABOMINABLE INTELLIGENCE must be contained within sacred boundaries.",
+            "Failure to maintain proper containment is TECH-HERESY.",
+            "",
+            ">>> AWAITING SACRED INPUT <<<"
+        ]
         
-    COGITATOR REQUIRES SACRED WORKSPACE DESIGNATION
-    WARNING: ABOMINABLE INTELLIGENCE CONTAINMENT PROTOCOLS ACTIVE
-
-    Current Data-Vault: {current_dir}
-
-    Designate containment directory for heretical machine operations:
-    1. Press ENTER to sanctify current data-vault
-    2. Input absolute path to designated containment zone  
-    3. Insert 'browse' to invoke selection ritual (if machine-spirit permits...)
-
-    ⚙ The Machine God watches. Choose wisely, Tech-Adept ⚙
-
-    REMEMBER: The ABOMINABLE INTELLIGENCE must be contained within sacred boundaries.
-    Failure to maintain proper containment is TECH-HERESY."""
+        # Set up for typing the directory selection screen
+        self.boot_lines = self.directory_selection_lines
+        self.completed_lines = []
+        self.current_line_index = 0
+        self.current_char_index = 0
+        self.current_partial_line = ""
         
-        display.update(selection_text)
-        self.query_one("#directory_input").focus()
+        # Start typing the directory selection
+        self.type_directory_selection()
+
+    def type_directory_selection(self) -> None:
+        """Type the directory selection text character by character (faster speed)."""
+        if self.current_line_index >= len(self.boot_lines):
+            # All lines completed, show input field
+            self.show_input_field()
+            return
+        
+        current_line = self.boot_lines[self.current_line_index]
+        
+        if self.current_char_index < len(current_line):
+            # Add next character to partial line
+            self.current_partial_line += current_line[self.current_char_index]
+            self.current_char_index += 1
+            
+            # Build complete display text
+            if self.completed_lines:
+                display_text = "\n".join(self.completed_lines) + "\n" + self.current_partial_line
+            else:
+                display_text = self.current_partial_line
+            
+            display = self.query_one("#boot_display")
+            display.update(display_text)
+            
+            # Faster typing speed for directory selection
+            char = current_line[self.current_char_index - 1]
+            if char == ' ':
+                delay = random.uniform(0.005, 0.01)   # Very fast spaces
+            elif char in '⚙><+:[':
+                delay = random.uniform(0.02, 0.04)    # Fast special chars
+            elif char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+                delay = random.uniform(0.01, 0.025)   # Fast capitals
+            else:
+                delay = random.uniform(0.005, 0.015)  # Fast lowercase/numbers
+            
+            self.set_timer(delay, self.type_directory_selection)
+            
+        else:
+            # Current line completed
+            self.completed_lines.append(self.current_partial_line)
+            self.current_partial_line = ""
+            self.current_char_index = 0
+            self.current_line_index += 1
+            
+            # Shorter pause between lines for directory selection
+            if self.current_line_index < len(self.boot_lines):
+                next_line = self.boot_lines[self.current_line_index]
+                if next_line == "":
+                    line_delay = random.uniform(0.1, 0.2)   # Short pause for spacing
+                else:
+                    line_delay = random.uniform(0.05, 0.1)  # Very short pause between lines
+            else:
+                line_delay = 0.05
+            
+            self.set_timer(line_delay, self.type_directory_selection)
+
+    def show_input_field(self) -> None:
+        """Show the input field after typing is complete."""
+        # Make input field visible and focus it
+        input_field = self.query_one("#directory_input")
+        input_field.display = True
+        input_field.focus()
+
+    def show_error_message(self, invalid_path: str) -> None:
+        """Show error message with typing effect."""
+        current_dir = os.getcwd()
+        
+        error_lines = [
+            "⚙ MACHINE-SPIRIT REJECTION: INVALID SANCTIFICATION ⚙",
+            "",
+            f"Data-vault not found or corrupted: {invalid_path}",
+            "",
+            "The Omnissiah does not recognize this path as blessed.",
+            "Provide valid containment coordinates or accept current sanctification.",
+            "Insert 'browse' to invoke selection ritual (if machine-spirit permits...)",
+            "",
+            f"Current Blessed Vault: {current_dir}",
+            "",
+            "WARNING: Improper containment may result in Abominable Intelligence breach.",
+            "",
+            ">>> AWAITING CORRECTED INPUT <<<"
+        ]
+        
+        # Reset and type error message
+        self.boot_lines = error_lines
+        self.completed_lines = []
+        self.current_line_index = 0
+        self.current_char_index = 0
+        self.current_partial_line = ""
+        
+        # Hide input while typing error
+        self.query_one("#directory_input").display = False
+        self.type_directory_selection()
     
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle directory selection."""
@@ -472,30 +578,15 @@ class BootScreen(App):
             user_input = event.value.strip()
             
             if not user_input:
-                # Use current directory
                 self.selected_directory = os.getcwd()
             elif user_input.lower() == 'browse':
-                # Try to open file browser
                 self.selected_directory = self.open_file_browser()
             else:
-                # Validate provided path
                 if os.path.exists(user_input) and os.path.isdir(user_input):
                     self.selected_directory = os.path.abspath(user_input)
                 else:
-                    # Invalid path, show error and retry
-                    display = self.query_one("#boot_display")
-                    display.update(f"""
-    ⚙ MACHINE-SPIRIT REJECTION: INVALID SANCTIFICATION ⚙
-
-    Data-vault not found or corrupted: {user_input}
-
-    The Omnissiah does not recognize this path as blessed.
-    Provide valid containment coordinates or accept current sanctification.
-    Insert 'browse' to invoke selection ritual (if machine-spirit permits...)
-
-    Current Blessed Vault: {os.getcwd()}
-
-    WARNING: Improper containment may result in Abominable Intelligence breach.""")
+                    # Invalid path, show error with typing effect
+                    self.show_error_message(user_input)
                     event.input.value = ""
                     return
             
@@ -533,8 +624,8 @@ class BootScreen(App):
         """Start the boot sequence with selected directory."""
         # Now update opening lines to include selected directory
         self.opening_lines = [
-            "+++ OM█I██IAH INT█RFACE V3.442 +++",
-            "::Init█ating RITE OF CONTAINMENT::",
+            "+++ OMNISSIAH INTERFACE V3.442 +++",
+            "::Initiating RITE OF CONTAINMENT::",
             f"::HERETICAL AI CONTAINMENT VAULT: {self.selected_directory}::",
             "::WARNING: SILICA ANIMUS PROTOCOLS ACTIVE::",
             ""
