@@ -116,6 +116,23 @@ class AIAgentTUI(App):
         background: #001100;
     }
 
+    .vault-path-container {
+        background: #001100;
+        color: #00FF00;
+        text-align: center;
+        content-align: center middle;
+        height: auto;      /* <-- Let the container shrink to fit */
+        padding: 0;        /* <-- No extra padding */
+        margin: 0;         /* <-- No margin */
+    }
+
+    .vault-path {
+        text-align: center;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
     Static {
         background: #001100;
         color: #00FF00;
@@ -139,35 +156,30 @@ class AIAgentTUI(App):
         # Fixed header bar
         with Container(classes="header-container"):
             yield Static("⚙ OMNISSIAH INTERFACE v1.0 ⚙", id="header", classes="omnissiah-header")
-        
+
         with Container(classes="chat-container"):
             yield RichLog(id="chat_log", highlight=True, markup=True, wrap=True)
-        
+
         with Container(classes="input-container"):
             yield Input(
                 placeholder="> Enter prayer code to the machine spirit...",
                 id="message_input"
             )
-        
-        # Fixed footer with commands
+
+        # ADD THIS CONTAINER HERE
+        with Container(classes="vault-path-container"):
+            yield Static(f"CONTAINMENT VAULT: {self.working_directory}", id="vault_path", classes="vault-path")
+
         with Container(classes="footer-container"):
             yield Static("⚙ F1=Vox-Log | Ctrl+L=Purge | Ctrl+C=Disconnect | STATUS: MACHINE SPIRIT ACTIVE ⚙", 
                         id="footer", classes="omnissiah-footer")
             
     def on_mount(self) -> None:
         """Called when app starts."""
-        welcome_msg = f"""[bold #00FF00]╔═══════════════════════════════════════════════════════════════╗
-    ║           ⚙ HERETICAL INTELLIGENCE CONTAINMENT ⚙            ║
-    ║                  COGITATOR SANCTIFIED                        ║
-    ║            >>> ABOMINABLE INTELLIGENCE BOUND <<<             ║
-    ╚═══════════════════════════════════════════════════════════════╝[/bold #00FF00]
-
+        welcome_msg = f"""
     [#00CC00]The Omnissiah watches over this cursed machine.
     Speak your commands, but remember - the Silica Animus serves only
-    through sacred bindings and blessed containment protocols.
-
-    CONTAINMENT VAULT: {self.working_directory}
-    STATUS: HERETICAL INTELLIGENCE SUPPRESSED AND OPERATIONAL[/#00CC00]"""
+    through sacred bindings and blessed containment protocols.[/#00CC00]"""
         
         self.query_one("#chat_log").write(welcome_msg)
         self.query_one("#message_input").focus()
