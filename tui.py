@@ -301,7 +301,7 @@ class BootScreen(App):
         height: 100%;
         width: 100%;
         background: #001100;
-        border: thick #00AA00;
+        border: #00AA00;
         padding: 2;
     }
     
@@ -315,13 +315,13 @@ class BootScreen(App):
     .directory-input {
         background: #001100;
         color: #00FF00;
-        border: thick #00AA00;
+        border: #00AA00;
         margin: 1;
         height: 3;
     }
     
     .directory-input:focus {
-        border: thick #00FF00;
+        border: #00FF00;
         background: #002200;
     }
     """
